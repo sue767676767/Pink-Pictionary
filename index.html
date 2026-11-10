@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Pink Classroom Pictionary</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Fredoka & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRCode JS Library for TV Secret QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pink: {
+                            50: '#fff0f5',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            bubble: '#ff75a0',
+                            accent: '#ff2e93',
+                            soft: '#fff5f8'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #fff0f5;
+            background-image: radial-gradient(#fecdd3 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .cute-card {
+            background: white;
+            border: 3px solid #fecdd3;
+            box-shadow: 0 10px 25px -5px rgba(251, 113, 133, 0.2);
+            border-radius: 1.75rem;
+        }
+        .cute-btn {
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+        }
+        .cute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0,0,0,0.1);
+        }
+        .cute-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0px rgba(0,0,0,0.1);
+        }
+        canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+        /* Custom scrollbar for cute aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff0f5;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fda4af;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #fb7185;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-700 flex flex-col justify-between p-3 sm:p-6">
+
+    <!-- TOP HEADER NAVBAR -->
+    <header class="max-w-6xl mx-auto w-full mb-4 flex justify-between items-center bg-white/80 backdrop-blur border-2 border-pink-200 rounded-full px-6 py-3 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-pink-400 flex items-center justify-center text-white text-xl shadow-md">
+                <i class="fa-solid fa-paintbrush"></i>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold text-pink-600 tracking-wide">Class Pictionary 🎨✨</h1>
+        </div>
+        <div id="topNavControls" class="hidden flex items-center space-x-2">
+            <button onclick="openSecretViewerModal()" class="px-3.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-full text-xs sm:text-sm font-bold cute-btn transition">
+                <i class="fa-solid fa-mobile-screen mr-1"></i> TV / Phone Mode 📱
+            </button>
+            <button onclick="confirmResetGame()" class="px-4 py-1.5 bg-pink-100 hover:bg-pink-200 text-pink-700 rounded-full text-sm font-bold cute-btn transition">
+                <i class="fa-solid fa-rotate-left mr-1"></i> New Game
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER CONTAINER -->
+    <main class="max-w-6xl mx-auto w-full flex-grow flex flex-col items-center justify-center">
+
+        <!-- STEP 1: SETUP SCREEN -->
+        <section id="setupScreen" class="w-full max-w-2xl cute-card p-6 sm:p-8 my-auto">
+            <div class="text-center mb-6">
+                <span class="bg-pink-100 text-pink-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Setup Phase</span>
+                <h2 class="text-3xl font-extrabold text-pink-600 mt-2">Classroom Registration 💖</h2>
+                <p class="text-slate-500 text-sm mt-1">Add your classmates' names and we'll form the teams!</p>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block font-bold text-pink-700 mb-1 text-sm">Classmate Names (separated by comma or new line)</label>
+                    <textarea id="studentNamesInput" rows="5" class="w-full p-4 border-2 border-pink-200 rounded-2xl focus:ring-4 focus:ring-pink-200 focus:border-pink-400 outline-none transition text-slate-700 placeholder-pink-300" placeholder="Mia, Alex, Sarah, Jayden, Emma, Oliver, Sophia, Lucas..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-pink-700 mb-1 text-sm">Number of Teams</label>
+                        <select id="teamCountSelect" class="w-full p-3 bg-white border-2 border-pink-200 rounded-2xl focus:ring-4 focus:ring-pink-200 focus:border-pink-400 outline-none font-bold text-pink-600">
+                            <option value="2">2 Teams</option>
+                            <option value="3">3 Teams</option>
+                            <option value="4">4 Teams</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-pink-700 mb-1 text-sm">Round Timer (Seconds)</label>
+                        <select id="timerDurationSelect" class="w-full p-3 bg-white border-2 border-pink-200 rounded-2xl focus:ring-4 focus:ring-pink-200 focus:border-pink-400 outline-none font-bold text-pink-600">
+                            <option value="45">45 Seconds</option>
+                            <option value="60" selected>60 Seconds</option>
+                            <option value="90">90 Seconds</option>
+                            <option value="120">120 Seconds</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateTeams()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-heading text-lg font-bold rounded-2xl shadow-lg cute-btn flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Shuffle & Generate Teams!</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 2: TEAM REVEAL & PREPARATION SCREEN -->
+        <section id="teamsPreviewScreen" class="hidden w-full max-w-4xl space-y-6">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-pink-600">Here Are Your Teams! 🎀</h2>
+                <p class="text-slate-500 text-sm">Get ready to draw and guess!</p>
+            </div>
+
+            <div id="teamsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Dynamic Teams Cards -->
+            </div>
+
+            <div class="flex justify-center space-x-4 pt-4">
+                <button onclick="generateTeams()" class="px-6 py-3 bg-pink-100 hover:bg-pink-200 text-pink-600 font-bold rounded-2xl cute-btn">
+                    <i class="fa-solid fa-shuffle mr-1"></i> Reshuffle
+                </button>
+                <button onclick="startGame()" class="px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white font-heading text-lg font-bold rounded-2xl shadow-lg cute-btn">
+                    Start Playing! <i class="fa-solid fa-play ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 3: MAIN GAMEPLAY DASHBOARD -->
+        <section id="gameplayScreen" class="hidden w-full grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            
+            <!-- LEFT PANEL: SCOREBOARD & TURN INFO -->
+            <div class="lg:col-span-1 space-y-4">
+                <!-- Current Turn Banner -->
+                <div class="cute-card p-5 text-center bg-gradient-to-br from-white to-pink-50">
+                    <span class="text-xs font-extrabold uppercase tracking-widest text-pink-400">Current Turn</span>
+                    <h3 id="currentTurnTeamName" class="text-2xl font-black text-pink-600 mt-1">Team 1</h3>
+                    <div class="mt-3 p-3 bg-pink-100/70 rounded-2xl border border-pink-200">
+                        <span class="text-xs text-slate-500 block">Artist of the Round:</span>
+                        <span id="currentArtistName" class="text-lg font-extrabold text-pink-700">Name</span>
+                    </div>
+                </div>
+
+                <!-- Timer Box -->
+                <div class="cute-card p-5 text-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Turn Timer</span>
+                        <i class="fa-solid fa-stopwatch text-pink-400 text-lg"></i>
+                    </div>
+                    <div id="timerDisplay" class="text-5xl font-black text-pink-600 font-heading my-2">60</div>
+                    <div class="flex justify-center space-x-2 mt-3">
+                        <button id="timerToggleBtn" onclick="toggleTimer()" class="px-4 py-2 bg-pink-500 text-white rounded-xl font-bold text-sm cute-btn">
+                            <i class="fa-solid fa-play"></i> Start
+                        </button>
+                        <button onclick="resetTimer()" class="px-3 py-2 bg-pink-100 text-pink-600 rounded-xl font-bold text-sm cute-btn">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Scoreboard Card -->
+                <div class="cute-card p-5">
+                    <h4 class="font-bold text-pink-600 mb-3 flex items-center justify-between">
+                        <span><i class="fa-solid fa-trophy text-amber-400 mr-2"></i>Scoreboard</span>
+                        <span id="roundCounter" class="text-xs bg-pink-100 text-pink-600 px-2.5 py-0.5 rounded-full">Round 1</span>
+                    </h4>
+                    <div id="scoreboardList" class="space-y-2.5">
+                        <!-- Dynamic scores -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: PROMPT, CANVAS & SCORING -->
+            <div class="lg:col-span-3 space-y-4">
+                <!-- Secret Prompt Bar -->
+                <div class="cute-card p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-pink-50 to-white relative overflow-hidden">
+                    <!-- 5 SECONDS GET READY OVERLAY -->
+                    <div id="getReadyOverlay" class="hidden absolute inset-0 bg-pink-500 text-white z-10 flex items-center justify-center space-x-3 px-4">
+                        <i class="fa-solid fa-stopwatch animate-bounce text-2xl"></i>
+                        <span class="font-black text-lg">Get Ready, Drawer! Starting in <span id="prepCountdown" class="text-3xl text-amber-300">5</span>s...</span>
+                    </div>
+
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <div class="w-10 h-10 rounded-2xl bg-pink-500 text-white flex items-center justify-center shrink-0 shadow">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-pink-400 uppercase block">Secret Prompt (Drawer Only)</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="promptTag" class="text-xs px-2 py-0.5 bg-pink-200 text-pink-700 font-bold rounded-full">Easy</span>
+                                <span id="promptText" class="font-black text-slate-800 text-lg sm:text-xl blur-sm transition duration-300 select-none">???????</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <button id="revealPromptBtn" onclick="toggleRevealPrompt()" class="px-4 py-2 bg-pink-200 hover:bg-pink-300 text-pink-800 text-xs font-bold rounded-xl cute-btn">
+                            <i class="fa-solid fa-eye mr-1"></i> Reveal
+                        </button>
+                        <button onclick="drawNewPrompt()" class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold rounded-xl cute-btn">
+                            <i class="fa-solid fa-dice mr-1"></i> New Prompt
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Digital Drawing Board Canvas -->
+                <div class="cute-card p-4 bg-white relative flex flex-col">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-pink-100">
+                        <!-- Color Palette -->
+                        <div class="flex items-center space-x-1.5 overflow-x-auto py-1">
+                            <button onclick="setCanvasColor('#000000')" class="w-7 h-7 rounded-full bg-black border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#e11d48')" class="w-7 h-7 rounded-full bg-pink-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#2563eb')" class="w-7 h-7 rounded-full bg-blue-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#16a34a')" class="w-7 h-7 rounded-full bg-green-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#ca8a04')" class="w-7 h-7 rounded-full bg-yellow-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#9333ea')" class="w-7 h-7 rounded-full bg-purple-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <button onclick="setCanvasColor('#ea580c')" class="w-7 h-7 rounded-full bg-orange-600 border-2 border-white shadow-sm hover:scale-110 transition"></button>
+                            <input type="color" id="customColorPicker" onchange="setCanvasColor(this.value)" class="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent">
+                        </div>
+
+                        <!-- Tools & Size -->
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-circle text-xs text-pink-400"></i>
+                                <input type="range" id="brushSize" min="2" max="30" value="6" oninput="updateBrushSize(this.value)" class="w-16 sm:w-20 accent-pink-500">
+                                <i class="fa-solid fa-circle text-lg text-pink-400"></i>
+                            </div>
+
+                            <button id="brushBtn" onclick="selectTool('brush')" class="p-2 bg-pink-200 text-pink-800 rounded-xl text-xs font-bold border border-pink-300">
+                                <i class="fa-solid fa-pen"></i> Brush
+                            </button>
+                            <button id="bucketBtn" onclick="selectTool('bucket')" class="p-2 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl text-xs font-bold border border-pink-200">
+                                <i class="fa-solid fa-fill-drip"></i> Bucket
+                            </button>
+                            <button id="eraserBtn" onclick="selectTool('eraser')" class="p-2 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl text-xs font-bold border border-pink-200">
+                                <i class="fa-solid fa-eraser"></i> Eraser
+                            </button>
+                            <button onclick="undoCanvas()" class="p-2 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl text-xs font-bold border border-pink-200">
+                                <i class="fa-solid fa-rotate-left"></i> Undo
+                            </button>
+                            <button onclick="clearCanvas()" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-600 rounded-xl text-xs font-bold">
+                                <i class="fa-solid fa-trash-can"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Area -->
+                    <div class="w-full bg-slate-50 rounded-2xl overflow-hidden border border-pink-100 relative" style="height: 380px;">
+                        <canvas id="drawingCanvas" class="w-full h-full bg-white"></canvas>
+                    </div>
+                </div>
+
+                <!-- Turn Scoring Controls -->
+                <div class="cute-card p-4 sm:p-5 bg-pink-50/50">
+                    <span class="text-xs font-extrabold uppercase tracking-widest text-pink-400 block mb-3 text-center sm:text-left">Award Points & End Turn</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button onclick="awardPoints('team')" class="p-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow cute-btn text-xs sm:text-sm flex flex-col items-center justify-center">
+                            <span class="text-base"><i class="fa-solid fa-star text-amber-300 mr-1"></i> Team Guessed!</span>
+                            <span class="text-emerald-100 text-xs font-normal">+20 Points (Double)</span>
+                        </button>
+                        
+                        <button onclick="openStealModal()" class="p-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow cute-btn text-xs sm:text-sm flex flex-col items-center justify-center">
+                            <span class="text-base"><i class="fa-solid fa-bolt mr-1"></i> Steal! Other Team</span>
+                            <span class="text-amber-100 text-xs font-normal">+10 Points (Normal)</span>
+                        </button>
+
+                        <button onclick="awardPoints('none')" class="p-3 bg-slate-400 hover:bg-slate-500 text-white font-bold rounded-2xl shadow cute-btn text-xs sm:text-sm flex flex-col items-center justify-center">
+                            <span class="text-base"><i class="fa-solid fa-hourglass-end mr-1"></i> Time's Up / No Points</span>
+                            <span class="text-slate-200 text-xs font-normal">+0 Points</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4: END GAME / WINNER SCREEN -->
+        <section id="winnerScreen" class="hidden w-full max-w-xl cute-card p-8 text-center my-auto space-y-6">
+            <div class="inline-block p-4 bg-amber-100 text-amber-500 rounded-full text-4xl shadow-md">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <div>
+                <span class="text-xs font-bold text-pink-400 uppercase tracking-widest">Game Completed!</span>
+                <h2 id="winnerText" class="text-4xl font-extrabold text-pink-600 mt-1">Team 1 Wins! 🎉</h2>
+                <p id="winnerSubtext" class="text-slate-500 mt-2">Amazing drawing and guessing skills!</p>
+            </div>
+
+            <!-- Final Scores List -->
+            <div id="finalScoresList" class="bg-pink-50 p-4 rounded-2xl border border-pink-200 space-y-2 text-left">
+                <!-- Filled dynamically -->
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-heading text-lg font-bold rounded-2xl shadow-lg cute-btn">
+                Play Again! <i class="fa-solid fa-rotate-right ml-2"></i>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-6 text-center text-xs text-pink-400 font-semibold">
+        Made with 💖 for Classroom Fun & Pictionary Parties
+    </footer>
+
+    <!-- STEAL MODAL POPUP -->
+    <div id="stealModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="cute-card p-6 max-w-md w-full bg-white space-y-4">
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-pink-600">Which Team Stole the Guess? ⚡</h3>
+                <p class="text-xs text-slate-500">Award +10 points to the stealing team.</p>
+            </div>
+            <div id="stealTeamsList" class="space-y-2">
+                <!-- Dynamic team choices -->
+            </div>
+            <button onclick="closeStealModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- SECRET VIEWER / TV MODAL POPUP -->
+    <div id="secretViewerModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="cute-card p-6 max-w-md w-full bg-white space-y-4 text-center">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-pink-600">📱 TV & Mobile Drawer View</h3>
+                <button onclick="closeSecretViewerModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">Scan this QR code with the drawer's phone or open on their device so they can see the secret prompt without showing the TV screen!</p>
+            
+            <div class="flex justify-center my-3 p-3 bg-pink-50 rounded-2xl border border-pink-200">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="p-3 bg-slate-100 rounded-xl text-left space-y-1">
+                <span class="text-xs font-bold text-slate-500 uppercase block">Drawer Direct Secret Link</span>
+                <input type="text" id="secretViewerUrlInput" readonly class="w-full text-xs bg-white border p-2 rounded-lg text-slate-700 outline-none select-all" onclick="this.select()">
+            </div>
+
+            <button onclick="closeSecretViewerModal()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-sm cute-btn">
+                Done & Close
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // EXPANDED PROMPTS DATABASE
+        const PROMPTS = {
+            easy: [
+                "Cat 🐱", "Sun ☀️", "House 🏠", "Pizza 🍕", "Tree 🌳", "Apple 🍎", "Car 🚗", 
+                "Smile 😃", "Flower 🌸", "Star ⭐️", "Cookie 🍪", "Ice Cream 🍦", "Fish 🐟",
+                "Cupcake 🧁", "Banana 🍌", "Glasses 👓", "Clock ⏰", "Heart 💖", "Butterfly 🦋",
+                "Balloon 🎈", "Rainbow 🌈", "Pencil ✏️", "Donut 🍩", "Duck 🦆", "Key 🔑",
+                "Guitar 🎸", "Football ⚽", "Spider 🕷️", "Frog 🐸", "Crown 👑", "Candle 🕯️",
+                "Cloud ☁️", "Mushroom 🍄", "Airplane ✈️", "Umbrella ☂️", "Burger 🍔", "Frying Pan 🍳"
+            ],
+            hard: [
+                "Roller Coaster 🎢", "Astronaut 👨‍🚀", "Submarine 🚤", "Earthquake 🌋", 
+                "Time Travel ⏳", "Shadow 👤", "Brainstorm 🧠", "Haunted House 👻", 
+                "Skyscraper 🏙️", "Solar Eclipse 🌘", "Pirate Ship 🏴‍☠️", "Tornado 🌪️",
+                "Scarecrow 🌾", "Lighthouse 🏮", "Virtual Reality 🥽", "Boomerang 🪃",
+                "Campfire ⛺", "DNA Strand 🧬", "Statue of Liberty 🗽", "Bermuda Triangle 🔺",
+                "Windmill 🌬️", "Constellation 🌌", "Treasure Map 🗺️", "Chameleon 🦎"
+            ],
+            funny: [
+                "Dancing Flamingo 🦩", "Flying Pig 🐖", "Sneeze 🤧", "Alien eating Pizza 👽",
+                "Cat with Sunglasses 🕶️", "Banana on Skates 🍌", "Sleeping Teacher 😴",
+                "Robot in the Rain 🤖", "Chicken in a Suit 🐔", "Super Dog 🐕",
+                "Potato wearing a Crown 🥔", "Shark riding a Bicycle 🦈", "Disco Unicorn 🦄",
+                "Penguin surfing 🐧", "Ninja Turtle 🐢", "Marshmallow fighting a Cookie 🍡",
+                "Octopus playing Drums 🐙", "T-Rex trying to make a bed 🦖", "Spaghetti Monster 🍝"
+            ]
+        };
+
+        const TEAM_COLORS = [
+            { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-300', icon: 'fa-heart' },
+            { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-300', icon: 'fa-star' },
+            { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-300', icon: 'fa-gem' },
+            { bg: 'bg-amber-100', text: 'text-amber-600', border: 'border-amber-300', icon: 'fa-sparkles' }
+        ];
+
+        // GAME STATE
+        let teams = [];
+        let currentTeamIndex = 0;
+        let currentRound = 1;
+        let timerInterval = null;
+        let prepTimerInterval = null;
+        let timerSeconds = 60;
+        let timerDefault = 60;
+        let isTimerRunning = false;
+        let currentPrompt = "";
+        let isPromptRevealed = false;
+
+        // CANVAS STATE
+        let canvas, ctx;
+        let isDrawing = false;
+        let currentColor = "#000000";
+        let currentBrushSize = 6;
+        let currentTool = 'brush'; // 'brush', 'bucket', 'eraser'
+        let canvasHistory = [];
+
+        // INITIALIZATION
+        window.onload = function() {
+            initCanvas();
+            checkSecretViewerUrl();
+        };
+
+        // CANVAS SETUP & EVENT HANDLERS
+        function initCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            // Adjust internal resolution to match displayed size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Mouse Events
+            canvas.addEventListener('mousedown', handleCanvasPointerDown);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+
+            // Touch Events for Tablets / Mobile
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+
+            canvas.addEventListener('touchend', (e) => {
+                const mouseEvent = new MouseEvent('mouseup', {});
+                canvas.dispatchEvent(mouseEvent);
+            });
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const tempImageData = (ctx && canvas.width > 0 && canvas.height > 0) 
+                ? ctx.getImageData(0, 0, canvas.width, canvas.height) 
+                : null;
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (tempImageData) {
+                ctx.putImageData(tempImageData, 0, 0);
+            } else {
+                clearCanvas();
+            }
+        }
+
+        function saveCanvasState() {
+            if (canvasHistory.length >= 10) canvasHistory.shift();
+            canvasHistory.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        function undoCanvas() {
+            if (canvasHistory.length > 0) {
+                const previousState = canvasHistory.pop();
+                ctx.putImageData(previousState, 0, 0);
+            }
+        }
+
+        function handleCanvasPointerDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const startX = Math.round(e.clientX - rect.left);
+            const startY = Math.round(e.clientY - rect.top);
+
+            if (currentTool === 'bucket') {
+                saveCanvasState();
+                floodFill(startX, startY, currentColor);
+            } else {
+                startDrawing(startX, startY);
+            }
+        }
+
+        function startDrawing(x, y) {
+            saveCanvasState();
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!isDrawing || currentTool === 'bucket') return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
+            ctx.lineWidth = currentTool === 'eraser' ? currentBrushSize * 3 : currentBrushSize;
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                ctx.closePath();
+                isDrawing = false;
+            }
+        }
+
+        function setCanvasColor(color) {
+            currentColor = color;
+            if (currentTool === 'eraser') {
+                selectTool('brush');
+            }
+        }
+
+        function updateBrushSize(val) {
+            currentBrushSize = val;
+        }
+
+        function selectTool(tool) {
+            currentTool = tool;
+            
+            const brushBtn = document.getElementById('brushBtn');
+            const bucketBtn = document.getElementById('bucketBtn');
+            const eraserBtn = document.getElementById('eraserBtn');
+
+            [brushBtn, bucketBtn, eraserBtn].forEach(b => b.className = "p-2 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-xl text-xs font-bold border border-pink-200");
+
+            if (tool === 'brush') brushBtn.className = "p-2 bg-pink-200 text-pink-800 rounded-xl text-xs font-bold border border-pink-300";
+            if (tool === 'bucket') bucketBtn.className = "p-2 bg-pink-200 text-pink-800 rounded-xl text-xs font-bold border border-pink-300";
+            if (tool === 'eraser') eraserBtn.className = "p-2 bg-pink-200 text-pink-800 rounded-xl text-xs font-bold border border-pink-300";
+        }
+
+        // PAINT BUCKET (FLOOD FILL ALGORITHM)
+        function floodFill(startX, startY, fillColorHex) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const imgData = ctx.getImageData(0, 0, width, height);
+            const data = imgData.data;
+
+            const targetColor = getPixelColor(data, startX, startY, width);
+            const fillColor = hexToRgb(fillColorHex);
+
+            if (colorsMatch(targetColor, fillColor)) return;
+
+            const pixelStack = [[startX, startY]];
+
+            while (pixelStack.length > 0) {
+                const [x, y] = pixelStack.pop();
+                let currentY = y;
+
+                while (currentY >= 0 && colorsMatch(getPixelColor(data, x, currentY, width), targetColor)) {
+                    currentY--;
+                }
+                currentY++;
+
+                let reachLeft = false;
+                let reachRight = false;
+
+                while (currentY < height && colorsMatch(getPixelColor(data, x, currentY, width), targetColor)) {
+                    setPixelColor(data, x, currentY, width, fillColor);
+
+                    if (x > 0) {
+                        if (colorsMatch(getPixelColor(data, x - 1, currentY, width), targetColor)) {
+                            if (!reachLeft) {
+                                pixelStack.push([x - 1, currentY]);
+                                reachLeft = true;
+                            }
+                        } else if (reachLeft) {
+                            reachLeft = false;
+                        }
+                    }
+
+                    if (x < width - 1) {
+                        if (colorsMatch(getPixelColor(data, x + 1, currentY, width), targetColor)) {
+                            if (!reachRight) {
+                                pixelStack.push([x + 1, currentY]);
+                                reachRight = true;
+                            }
+                        } else if (reachRight) {
+                            reachRight = false;
+                        }
+                    }
+
+                    currentY++;
+                }
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function getPixelColor(data, x, y, width) {
+            const idx = (y * width + x) * 4;
+            return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
+        }
+
+        function setPixelColor(data, x, y, width, color) {
+            const idx = (y * width + x) * 4;
+            data[idx] = color[0];
+            data[idx + 1] = color[1];
+            data[idx + 2] = color[2];
+            data[idx + 3] = 255;
+        }
+
+        function colorsMatch(c1, c2, tolerance = 30) {
+            return Math.abs(c1[0] - c2[0]) <= tolerance &&
+                   Math.abs(c1[1] - c2[1]) <= tolerance &&
+                   Math.abs(c1[2] - c2[2]) <= tolerance &&
+                   Math.abs(c1[3] - c2[3]) <= tolerance;
+        }
+
+        function hexToRgb(hex) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            const num = parseInt(c, 16);
+            return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasHistory = [];
+        }
+
+        // SETUP & TEAM GENERATION
+        function generateTeams() {
+            const rawInput = document.getElementById('studentNamesInput').value;
+            const names = rawInput.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
+
+            if (names.length === 0) {
+                alert("Please enter at least a few student names! 💕");
+                return;
+            }
+
+            const teamCount = parseInt(document.getElementById('teamCountSelect').value);
+            timerDefault = parseInt(document.getElementById('timerDurationSelect').value);
+
+            const shuffled = [...names].sort(() => Math.random() - 0.5);
+
+            teams = [];
+            for (let i = 0; i < teamCount; i++) {
+                teams.push({
+                    name: `Team ${i + 1}`,
+                    members: [],
+                    score: 0,
+                    currentMemberIndex: 0
+                });
+            }
+
+            shuffled.forEach((name, idx) => {
+                teams[idx % teamCount].members.push(name);
+            });
+
+            renderTeamsPreview();
+        }
+
+        function renderTeamsPreview() {
+            const container = document.getElementById('teamsContainer');
+            container.innerHTML = '';
+
+            teams.forEach((t, idx) => {
+                const color = TEAM_COLORS[idx % TEAM_COLORS.length];
+                const card = document.createElement('div');
+                card.className = `cute-card p-5 ${color.bg} border-2 ${color.border}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-extrabold ${color.text} text-xl">${t.name}</h3>
+                        <i class="fa-solid ${color.icon} ${color.text}"></i>
+                    </div>
+                    <ul class="space-y-1 text-sm font-semibold text-slate-700">
+                        ${t.members.map(m => `<li class="bg-white/80 px-3 py-1.5 rounded-xl shadow-sm flex items-center"><i class="fa-solid fa-user-sparkles text-pink-400 mr-2 text-xs"></i>${m}</li>`).join('')}
+                    </ul>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('teamsPreviewScreen').classList.remove('hidden');
+        }
+
+        // GAME START & TURN MANAGEMENT
+        function startGame() {
+            document.getElementById('teamsPreviewScreen').classList.add('hidden');
+            document.getElementById('gameplayScreen').classList.remove('hidden');
+            document.getElementById('topNavControls').classList.remove('hidden');
+
+            currentTeamIndex = 0;
+            currentRound = 1;
+
+            setTimeout(resizeCanvas, 50);
+
+            setupTurn();
+            renderScoreboard();
+        }
+
+        function setupTurn() {
+            stopTimer();
+            if (prepTimerInterval) clearInterval(prepTimerInterval);
+
+            timerSeconds = timerDefault;
+            updateTimerDisplay();
+
+            const activeTeam = teams[currentTeamIndex];
+            const activeArtist = activeTeam.members[activeTeam.currentMemberIndex % activeTeam.members.length];
+
+            document.getElementById('currentTurnTeamName').innerText = activeTeam.name;
+            document.getElementById('currentArtistName').innerText = activeArtist;
+            document.getElementById('roundCounter').innerText = `Round ${currentRound}`;
+
+            drawNewPrompt();
+            clearCanvas();
+            startPrepCountdown();
+        }
+
+        // 5-SECOND AUTO COUNTDOWN DELAY
+        function startPrepCountdown() {
+            stopTimer();
+            if (prepTimerInterval) clearInterval(prepTimerInterval);
+
+            const overlay = document.getElementById('getReadyOverlay');
+            const countdownEl = document.getElementById('prepCountdown');
+            let prepSeconds = 5;
+
+            countdownEl.innerText = prepSeconds;
+            overlay.classList.remove('hidden');
+
+            prepTimerInterval = setInterval(() => {
+                prepSeconds--;
+                countdownEl.innerText = prepSeconds;
+
+                if (prepSeconds <= 0) {
+                    clearInterval(prepTimerInterval);
+                    overlay.classList.add('hidden');
+                    startTimer(); // Auto-start turn timer!
+                }
+            }, 1000);
+        }
+
+        function drawNewPrompt() {
+            const categories = ['easy', 'hard', 'funny'];
+            const randomCat = categories[Math.floor(Math.random() * categories.length)];
+            const promptList = PROMPTS[randomCat];
+            currentPrompt = promptList[Math.floor(Math.random() * promptList.length)];
+
+            document.getElementById('promptTag').innerText = randomCat.toUpperCase();
+            
+            isPromptRevealed = false;
+            const promptTextEl = document.getElementById('promptText');
+            promptTextEl.innerText = "🔒 Hidden Prompt";
+            promptTextEl.classList.add('blur-sm');
+            document.getElementById('revealPromptBtn').innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Reveal`;
+
+            // Update TV Secret Viewer Storage
+            localStorage.setItem('pictionary_current_prompt', currentPrompt);
+        }
+
+        function toggleRevealPrompt() {
+            isPromptRevealed = !isPromptRevealed;
+            const promptTextEl = document.getElementById('promptText');
+            const btn = document.getElementById('revealPromptBtn');
+
+            if (isPromptRevealed) {
+                promptTextEl.innerText = currentPrompt;
+                promptTextEl.classList.remove('blur-sm');
+                btn.innerHTML = `<i class="fa-solid fa-eye-slash mr-1"></i> Hide`;
+            } else {
+                promptTextEl.innerText = "🔒 Hidden Prompt";
+                promptTextEl.classList.add('blur-sm');
+                btn.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Reveal`;
+            }
+        }
+
+        // TIMER LOGIC
+        function toggleTimer() {
+            if (isTimerRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            document.getElementById('timerToggleBtn').innerHTML = `<i class="fa-solid fa-pause"></i> Pause`;
+            document.getElementById('timerToggleBtn').classList.replace('bg-pink-500', 'bg-amber-500');
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+
+                if (timerSeconds <= 0) {
+                    stopTimer();
+                    playTimerBeep();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('timerToggleBtn').innerHTML = `<i class="fa-solid fa-play"></i> Start`;
+            document.getElementById('timerToggleBtn').classList.replace('bg-amber-500', 'bg-pink-500');
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = timerDefault;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timerDisplay');
+            display.innerText = timerSeconds;
+            if (timerSeconds <= 10) {
+                display.classList.add('text-rose-600', 'animate-pulse');
+            } else {
+                display.classList.remove('text-rose-600', 'animate-pulse');
+            }
+        }
+
+        function playTimerBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch(e) {}
+        }
+
+        // TV / PHONE SECRET VIEWER POPUP
+        function openSecretViewerModal() {
+            const modal = document.getElementById('secretViewerModal');
+            const qrContainer = document.getElementById('qrcode');
+            const urlInput = document.getElementById('secretViewerUrlInput');
+            
+            qrContainer.innerHTML = '';
+            const currentUrl = window.location.href.split('?')[0] + '?view=secret';
+            urlInput.value = currentUrl;
+
+            new QRCode(qrContainer, {
+                text: currentUrl,
+                width: 150,
+                height: 150,
+                colorDark: "#e11d48",
+                colorLight: "#ffffff"
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeSecretViewerModal() {
+            document.getElementById('secretViewerModal').classList.add('hidden');
+        }
+
+        function checkSecretViewerUrl() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('view') === 'secret') {
+                document.body.innerHTML = `
+                    <div class="min-h-screen bg-pink-100 flex flex-col items-center justify-center p-6 text-center font-sans">
+                        <div class="cute-card p-8 bg-white max-w-sm w-full space-y-4">
+                            <span class="text-xs font-bold text-pink-400 uppercase tracking-widest block">📱 Mobile Drawer View</span>
+                            <h2 class="text-2xl font-black text-pink-600">Your Secret Prompt</h2>
+                            <div class="p-6 bg-pink-50 rounded-2xl border-2 border-pink-300">
+                                <span id="mobileSecretPrompt" class="text-3xl font-extrabold text-slate-800 block">...</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Keep this screen hidden from the class! Shhh! 🤫</p>
+                            <button onclick="updateMobilePrompt()" class="w-full py-3 bg-pink-500 text-white font-bold rounded-xl cute-btn">
+                                <i class="fa-solid fa-rotate mr-1"></i> Refresh Prompt
+                            </button>
+                        </div>
+                    </div>
+                `;
+                updateMobilePrompt();
+                setInterval(updateMobilePrompt, 2000);
+            }
+        }
+
+        function updateMobilePrompt() {
+            const promptEl = document.getElementById('mobileSecretPrompt');
+            if (promptEl) {
+                promptEl.innerText = localStorage.getItem('pictionary_current_prompt') || "No prompt active yet";
+            }
+        }
+
+        // SCORING LOGIC
+        function awardPoints(type, stealTeamIndex = null) {
+            stopTimer();
+
+            if (type === 'team') {
+                teams[currentTeamIndex].score += 20;
+                triggerConfetti();
+            } else if (type === 'steal' && stealTeamIndex !== null) {
+                teams[stealTeamIndex].score += 10;
+                triggerConfetti();
+            }
+
+            advanceTurn();
+        }
+
+        function openStealModal() {
+            stopTimer();
+            const list = document.getElementById('stealTeamsList');
+            list.innerHTML = '';
+
+            teams.forEach((t, idx) => {
+                if (idx !== currentTeamIndex) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full p-3 bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold rounded-2xl flex justify-between items-center border border-pink-200 transition";
+                    btn.innerHTML = `<span>${t.name}</span> <span class="bg-pink-200 px-2 py-1 rounded-lg text-xs">+10 Pts</span>`;
+                    btn.onclick = () => {
+                        closeStealModal();
+                        awardPoints('steal', idx);
+                    };
+                    list.appendChild(btn);
+                }
+            });
+
+            document.getElementById('stealModal').classList.remove('hidden');
+        }
+
+        function closeStealModal() {
+            document.getElementById('stealModal').classList.add('hidden');
+        }
+
+        function advanceTurn() {
+            teams[currentTeamIndex].currentMemberIndex++;
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+
+            if (currentTeamIndex === 0) {
+                currentRound++;
+            }
+
+            renderScoreboard();
+
+            if (currentRound > 5) {
+                endGame();
+            } else {
+                setupTurn();
+            }
+        }
+
+        function renderScoreboard() {
+            const list = document.getElementById('scoreboardList');
+            list.innerHTML = '';
+
+            const sorted = [...teams].sort((a, b) => b.score - a.score);
+
+            sorted.forEach((t) => {
+                const isCurrent = t.name === teams[currentTeamIndex].name;
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-2xl flex justify-between items-center border transition ${isCurrent ? 'bg-pink-100 border-pink-400 font-extrabold' : 'bg-white border-pink-100 font-bold'}`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm ${isCurrent ? 'text-pink-600' : 'text-slate-700'}">${t.name}</span>
+                        ${isCurrent ? '<span class="text-[10px] bg-pink-500 text-white px-2 py-0.5 rounded-full uppercase">Drawing</span>' : ''}
+                    </div>
+                    <span class="text-pink-600 font-heading text-lg">${t.score} pts</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // END GAME & CELEBRATION
+        function endGame() {
+            document.getElementById('gameplayScreen').classList.add('hidden');
+            document.getElementById('winnerScreen').classList.remove('hidden');
+
+            const sorted = [...teams].sort((a, b) => b.score - a.score);
+            const winner = sorted[0];
+
+            document.getElementById('winnerText').innerText = `🎉 ${winner.name} Wins! 🎉`;
+            document.getElementById('winnerSubtext').innerText = `Scored an amazing ${winner.score} points!`;
+
+            const finalScoresList = document.getElementById('finalScoresList');
+            finalScoresList.innerHTML = sorted.map((t, i) => `
+                <div class="flex justify-between items-center py-1 border-b border-pink-200 last:border-0 font-bold text-slate-700">
+                    <span>#${i + 1} ${t.name}</span>
+                    <span class="text-pink-600 font-heading">${t.score} Points</span>
+                </div>
+            `).join('');
+
+            triggerConfettiContinuous();
+        }
+
+        function triggerConfetti() {
+            try {
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.7 },
+                    colors: ['#ff75a0', '#ff2e93', '#fecdd3', '#fb7185']
+                });
+            } catch(e) {}
+        }
+
+        function triggerConfettiContinuous() {
+            try {
+                const duration = 3 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 3,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#ff75a0', '#ff2e93', '#fecdd3']
+                    });
+                    confetti({
+                        particleCount: 3,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#ff75a0', '#ff2e93', '#fecdd3']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            } catch(e) {}
+        }
+
+        function confirmResetGame() {
+            if (confirm("Are you sure you want to start a new game? Current scores will be reset.")) {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            stopTimer();
+            if (prepTimerInterval) clearInterval(prepTimerInterval);
+            teams = [];
+            document.getElementById('winnerScreen').classList.add('hidden');
+            document.getElementById('gameplayScreen').classList.add('hidden');
+            document.getElementById('teamsPreviewScreen').classList.add('hidden');
+            document.getElementById('topNavControls').classList.add('hidden');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
